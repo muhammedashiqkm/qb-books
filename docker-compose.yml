@@ -9,11 +9,14 @@ services:
     # change it in one file and this mapping, the health check and a local
     # `run.ps1` all follow.
     #
-    # 127.0.0.1 on purpose: the portal calls this, nothing else should reach
-    # it. It holds whole textbooks and has no login of its own - put it on a
-    # public interface only behind a firewall rule, and set the API key.
+    # Published on every interface, because the portal is on another machine.
+    #
+    # Two things stand in front of the books, and BOTH have to be there:
+    # QB_BOOKS_API_KEY set in .env (the service has no login of its own), and a
+    # firewall rule allowing this port from the portal's address only. Bind it
+    # back to 127.0.0.1 the day the portal moves onto this host.
     ports:
-      - "127.0.0.1:${QB_BOOKS_PORT:-8081}:${QB_BOOKS_PORT:-8081}"
+      - "${QB_BOOKS_PORT:-8081}:${QB_BOOKS_PORT:-8081}"
 
     environment:
       QB_BOOKS_PORT: "${QB_BOOKS_PORT:-8081}"
