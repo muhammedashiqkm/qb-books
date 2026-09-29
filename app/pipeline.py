@@ -71,9 +71,11 @@ def read_book(book_id: str, file_path: str) -> None:
         layers: Dict[int, bytes] = {}
         guard = threading.Lock()
 
+        langs = (library.get(book_id).langs or "").strip() or config.OCR_LANGS
+
         def read_page(page_no: int) -> None:
             png = pdfdoc.render_png(doc, page_no)
-            result, layer = ocr.engine.run_both(png)
+            result, layer = ocr.engine.run_both(png, lang=langs)
             text = textnorm.normalise(result.text)
             library.add_page(book_id, library.Page(
                 page_no=page_no, source="ocr", chars=len(text.strip()),

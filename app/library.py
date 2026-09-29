@@ -44,6 +44,10 @@ class Book:
     chars: int = 0
     seconds: float = 0.0
     error: str = ""
+    # The models this book is read with, e.g. "mal+eng". Every model named
+    # here reads every page, so this is the book's cost as much as its
+    # language: nine models are seven times the work of two.
+    langs: str = ""
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
 
@@ -74,11 +78,13 @@ def _write_meta(book: Book) -> None:
         json.dumps(book.meta(), ensure_ascii=False, indent=1), encoding="utf-8")
 
 
-def create(book_id: str, title: str, pages: int, verdict: str, ocr_pages: int) -> Book:
+def create(book_id: str, title: str, pages: int, verdict: str, ocr_pages: int,
+           langs: str = "") -> Book:
     """Starts a book afresh, dropping anything an earlier run left."""
     with _lock:
         shutil.rmtree(_folder(book_id), ignore_errors=True)
-        book = Book(id=book_id, title=title, pages=pages, verdict=verdict, ocr_pages=ocr_pages)
+        book = Book(id=book_id, title=title, pages=pages, verdict=verdict,
+                    ocr_pages=ocr_pages, langs=langs)
         _books[book_id] = book
         _pages[book_id] = []
         _write_meta(book)

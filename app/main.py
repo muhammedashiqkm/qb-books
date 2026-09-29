@@ -69,6 +69,7 @@ async def index(
     file: UploadFile = File(...),
     book_id: str = Form(default=""),
     title: str = Form(default=""),
+    langs: str = Form(default=""),
 ) -> dict:
     """
     Take the PDF, answer at once, do the work in the background.
@@ -76,8 +77,15 @@ async def index(
     The answer already says what the file is: a PDF carrying its own text is
     ready in about a second, a scan is minutes, and the caller can say which
     before it starts waiting.
+
+    'langs' is this book's own, e.g. "mal" or "tam". It decides the work: every
+    model named reads every page, so a book read in the whole installed set
+    costs several times one read in the language it is actually written in.
+    Unknown names are dropped, and English is kept alongside because an Indian
+    textbook carries English terms in its own sentences.
     """
     book_id = (book_id or "").strip() or uuid.uuid4().hex
+    chosen = _langs_for(langs)
     path = _save_upload(file, book_id)
     report = pdfdoc.scan(str(path))
     library.create(
@@ -86,6 +94,7 @@ async def index(
         pages=report.pages,
         verdict=report.verdict,
         ocr_pages=report.image_pages,
+        langs=chosen,
     )
     pipeline.submit(book_id, str(path))
     return {
@@ -95,6 +104,7 @@ async def index(
         "verdict": report.verdict,
         "pages_needing_ocr": report.image_pages,
         "ocr_available": ocr.engine.available,
+        "langs": chosen,
     }
 
 
@@ -198,6 +208,29 @@ def search(book_id: str, q: str, limit: int = 10) -> dict:
             if len(hits) >= max(1, min(limit, 50)):
                 break
     return {"book_id": book_id, "q": q, "hits": hits}
+
+
+def _langs_for(asked: str) -> str:
+    """
+    The models this book will be read with.
+
+    Only what the engine actually has is kept - a name with no model behind it
+    fails every page of the book, and the caller would see a book that simply
+    would not read. English rides along with any other language because the
+    course books put English terms inside their own sentences; asking for
+    English alone leaves it alone.
+    """
+    installed = set(ocr.engine.languages())
+    wanted = [p.strip() for p in (asked or "").replace(",", "+").split("+")]
+    keep = [p for p in wanted if p and p in installed]
+
+    if not keep:
+        return config.OCR_LANGS
+
+    if "eng" in installed and "eng" not in keep:
+        keep.append("eng")
+
+    return "+".join(keep)
 
 
 def _save_upload(file: UploadFile, book_id: str) -> Path:
