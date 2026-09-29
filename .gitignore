@@ -1,0 +1,9 @@
+.venv/
+data/
+out/
+__pycache__/
+*.pyc
+
+# The live settings of THIS machine, including the shared key. .env.example is
+# the copy that travels: settings without values that belong to anyone.
+.env

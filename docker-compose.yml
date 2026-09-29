@@ -1,0 +1,41 @@
+services:
+  qb-books:
+    build: .
+    image: qb-books:latest
+    container_name: qb-books
+    restart: unless-stopped
+
+    # The port comes from .env, the same value the service listens on inside -
+    # change it in one file and this mapping, the health check and a local
+    # `run.ps1` all follow.
+    #
+    # 127.0.0.1 on purpose: the portal calls this, nothing else should reach
+    # it. It holds whole textbooks and has no login of its own - put it on a
+    # public interface only behind a firewall rule, and set the API key.
+    ports:
+      - "127.0.0.1:${QB_BOOKS_PORT:-8081}:${QB_BOOKS_PORT:-8081}"
+
+    environment:
+      QB_BOOKS_PORT: "${QB_BOOKS_PORT:-8081}"
+      QB_BOOKS_OCR_LANGS: "${QB_BOOKS_OCR_LANGS:-mal+eng}"
+      # Matches the portal's "QbBooksApiKey".
+      QB_BOOKS_API_KEY: "${QB_BOOKS_API_KEY:-}"
+      # Pages read at once. Leave a core for the rest of the machine; on a
+      # shared box, fewer.
+      QB_BOOKS_PAGE_WORKERS: "${QB_BOOKS_PAGE_WORKERS:-4}"
+      # How many read books are kept before the oldest are dropped.
+      QB_BOOKS_KEEP: "${QB_BOOKS_KEEP:-20}"
+
+    volumes:
+      - qb-books-data:/data
+
+    # OCR is CPU-bound and will take whatever it is given. The limit keeps one
+    # long book from starving whatever else runs on the host.
+    deploy:
+      resources:
+        limits:
+          cpus: "${QB_BOOKS_CPUS:-4}"
+          memory: 2g
+
+volumes:
+  qb-books-data:

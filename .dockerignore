@@ -1,0 +1,13 @@
+# The image builds from source only. Everything below is either rebuilt inside
+# it (models, dependencies) or belongs to a developer's machine.
+.venv/
+data/
+out/
+bench/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+README.md
+run.ps1
+docker-compose.yml
