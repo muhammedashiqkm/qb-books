@@ -27,7 +27,7 @@ COPY scripts scripts
 # only with those, and they live beside the distribution's models - which
 # QB_BOOKS_TESSDATA below points away from. Without them the readable PDF
 # silently comes out as plain text.
-RUN python scripts/get_tessdata.py mal eng --flavour fast \
+RUN python scripts/get_tessdata.py ara eng fra hin mal san syr tam urd --flavour fast \
     && cp -r /usr/share/tesseract-ocr/*/tessdata/configs /app/data/tessdata/fast/ \
     && cp /usr/share/tesseract-ocr/*/tessdata/pdf.ttf /app/data/tessdata/fast/
 
@@ -38,7 +38,7 @@ COPY app app
 ENV QB_BOOKS_HOST=0.0.0.0 \
     QB_BOOKS_PORT=8081 \
     QB_BOOKS_TESSDATA=/app/data/tessdata/fast \
-    QB_BOOKS_OCR_LANGS=mal+eng \
+    QB_BOOKS_OCR_LANGS=ara+eng+fra+hin+mal+san+syr+tam+urd \
     QB_BOOKS_DATA=/data \
     PYTHONUNBUFFERED=1
 

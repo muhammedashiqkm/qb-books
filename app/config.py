@@ -42,8 +42,11 @@ TESSERACT_FALLBACKS = (
 # Where the language files live, when they are not beside the binary.
 TESSDATA_PREFIX = os.getenv("QB_BOOKS_TESSDATA", "").strip() or None
 
-# The course books are Malayalam with English terms mixed into the same line,
-# which is why both languages go to every page rather than one being guessed.
+# Every model named here reads every page - the setting is the work done per
+# page, not a list of what the service could read. The real value lives in
+# .env; this fallback is the pair that is present in any install, so a run
+# without .env still reads the course books rather than failing on a model
+# that was never downloaded.
 OCR_LANGS = os.getenv("QB_BOOKS_OCR_LANGS", "mal+eng")
 
 # 300 DPI is the resolution Tesseract is trained for. Lower loses the small
