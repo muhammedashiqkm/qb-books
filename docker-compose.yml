@@ -5,6 +5,15 @@ services:
     container_name: qb-books
     restart: unless-stopped
 
+    # An init process as PID 1, which is tini rather than Python.
+    #
+    # The reader starts a Tesseract process per page and Python does not reap
+    # the finished ones - as PID 1 nothing else does either, so they pile up as
+    # zombies until Docker cannot even stop the container ("PID is zombie and
+    # can not be killed"). tini reaps them and passes signals through, so stop
+    # and restart behave.
+    init: true
+
     # The port comes from .env, the same value the service listens on inside -
     # change it in one file and this mapping, the health check and a local
     # `run.ps1` all follow.
